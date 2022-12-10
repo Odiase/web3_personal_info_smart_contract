@@ -50,12 +50,14 @@ abi = json.loads(
 )["output"]["abi"]
 
 
-# connecting to ganache local blockchain
-w3 = Web3(Web3.HTTPProvider('http://127.0.0.1:7545'))
-chain_id = 1337
-address = os.getenv('PUBLIC_KEY')
+print("Conecting To TestNet")
+# connecting to A Sepolia Testnet Using Infura
+w3 = Web3(Web3.HTTPProvider('https://sepolia.infura.io/v3/cc4561cfb15540ebb15da6802357e6f2'))
+chain_id = 11155111
+address = os.getenv('ADDRESS')
 private_key = os.getenv('PRIVATE_KEY')
 nonce = w3.eth.get_transaction_count(address)
+print("Connected To TestNet")
 
 # create the contract
 personal_info_contract = w3.eth.contract(abi=abi, bytecode=bytecode)
@@ -73,15 +75,17 @@ transaction = personal_info_contract.constructor().buildTransaction(
 # signing the transaction
 signed_transaction = w3.eth.account.sign_transaction(transaction, private_key=private_key)
 
+print("Deploying Contract")
 # sending the transaction an getting the trasaction hash
-#hashed_signed_transaction= w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
+hashed_signed_transaction= w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
 
 # verifying that the transaction went through(waiting for it to be mined and added to the blockchain and then get the trnsaction receipt) <-- BEST PRACTICE
-#transaction_receipt = w3.eth.wait_for_transaction_receipt(hashed_signed_transaction)
+transaction_receipt = w3.eth.wait_for_transaction_receipt(hashed_signed_transaction)
+print("Contract Deployed")
 
 
 #                                     ### Contract Interaction ###
-contract = w3.eth.contract(address='0xc6D75227d55FB45c7D332D9952B8EC3A6EAe2Fac', abi=abi)
+contract = w3.eth.contract(address=transaction_receipt.contractAddress, abi=abi)
 
 
 
@@ -141,6 +145,6 @@ def delete_person(contract, name):
 
 
 
-create_person(contract, "Efosa", 2349020705214, "Lagos, Nigeria")
-get_person('Efosa', contract)
-delete_person(contract, "Efosa")
+# create_person(contract, "Efosa", 2349020705214, "Lagos, Nigeria")
+# get_person('Efosa', contract)
+# delete_person(contract, "Efosa")
